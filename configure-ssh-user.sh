@@ -12,8 +12,12 @@ else
     echo "User $SSH_USERNAME created"
 fi
 
-# Disable password authentication if authorized keys are provided
-sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+# Add to sudo group
+usermod -aG sudo "$SSH_USERNAME"
+echo "User $SSH_USERNAME added to sudo group"
+
+echo "$SSH_USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$SSH_USERNAME
+chmod 0440 /etc/sudoers.d/$SSH_USERNAME
 
 # Set the authorized keys from the AUTHORIZED_KEYS environment variable (if provided)
 if [ -n "$AUTHORIZED_KEYS" ]; then
