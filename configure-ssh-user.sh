@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set default values for SSH_USERNAME if not provided
-: ${SSH_USERNAME:=ubuntu}
+: ${SSH_USERNAME:=taolie}
 : ${SSHD_CONFIG_ADDITIONAL:=""}
 
 # Create the user with the provided username and set the password
@@ -12,9 +12,10 @@ else
     echo "User $SSH_USERNAME created"
 fi
 
-# Add to sudo group
+# Add to sudo and docker groups
 usermod -aG sudo "$SSH_USERNAME"
-echo "User $SSH_USERNAME added to sudo group"
+usermod -aG docker "$SSH_USERNAME"
+echo "User $SSH_USERNAME added to sudo and docker groups"
 
 echo "$SSH_USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$SSH_USERNAME
 chmod 0440 /etc/sudoers.d/$SSH_USERNAME
@@ -40,6 +41,13 @@ if [ -n "$SSHD_CONFIG_FILE" ] && [ -f "$SSHD_CONFIG_FILE" ]; then
     cat "$SSHD_CONFIG_FILE" >> /etc/ssh/sshd_config
     echo "Additional SSHD configuration from file applied"
 fi
+
+# Start Docker daemon in background
+echo "Starting Docker daemon..."
+dockerd > /var/log/dockerd.log 2>&1 &
+
+# Wait a moment for Docker to start
+sleep 3
 
 # Start the SSH server
 echo "Starting SSH server..."

@@ -3,7 +3,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/aoudiamoncef/ubuntu-sshd.svg)](https://hub.docker.com/r/aoudiamoncef/ubuntu-sshd)
 [![Maintenance](https://img.shields.io/badge/Maintained-Yes-green.svg)](https://github.com/aoudiamoncef/ubuntu-sshd)
 
-This Docker image provides an Ubuntu 24.04 base with SSH server enabled. It allows you to easily create SSH-accessible containers via SSH keys or with a default username and password.
+This Docker image provides an Ubuntu 22.04 base with SSH server and Docker-in-Docker capabilities enabled. It includes a full development environment with Docker, GPU support, and common development tools. Perfect for secure containerized development environments.
 
 ## Usage
 
@@ -51,10 +51,38 @@ ssh -p host-port myuser@localhost
 - `host-port` should match the port you specified when running the container.
 - Use the provided password or SSH key for authentication, depending on your configuration.
 
+### Docker-in-Docker Support
+
+This image includes Docker and supports Docker-in-Docker operations:
+
+```bash
+# Inside the SSH container, you can run Docker commands
+docker run --rm hello-world
+docker build -t my-app .
+docker run --gpus all nvidia/cuda:12.2-base nvidia-smi
+```
+
+**Note**: For full Docker-in-Docker support, run this container with Sysbox runtime:
+```bash
+docker run --runtime=sysbox-runc -d -p 2222:22 \
+  -e SSH_USERNAME=developer \
+  -e AUTHORIZED_KEYS="$(cat ~/.ssh/id_ed25519.pub)" \
+  ghcr.io/taolie-ai/ubuntu-sshd:latest
+```
+
+### Features
+
+- **Full Development Environment**: Git, Python, Node.js, build tools
+- **Docker-in-Docker**: Run Docker containers inside SSH container
+- **GPU Support**: Ready for GPU workloads (with Sysbox runtime)
+- **SSH Key Authentication**: Secure key-based access
+- **Configurable Username**: Default `taolie`, customizable via `SSH_USERNAME`
+
 ### Note
 
 - If the `AUTHORIZED_KEYS` environment variable is empty when starting the container, it will still launch the SSH server, but no authorized keys will be configured. You have to mount your own authorized keys file or manually configure the keys in the container.
 - If `AUTHORIZED_KEYS` is provided, password authentication will be disabled for enhanced security.
+- For Docker-in-Docker to work properly, use Sysbox runtime instead of standard runc.
 
 ## License
 
