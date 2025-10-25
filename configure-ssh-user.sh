@@ -42,12 +42,27 @@ if [ -n "$SSHD_CONFIG_FILE" ] && [ -f "$SSHD_CONFIG_FILE" ]; then
     echo "Additional SSHD configuration from file applied"
 fi
 
+# Configure Docker to use NVIDIA runtime
+echo "Configuring Docker for NVIDIA support..."
+mkdir -p /etc/docker
+cat > /etc/docker/daemon.json << EOF
+{
+  "runtimes": {
+    "nvidia": {
+      "path": "nvidia-container-runtime",
+      "runtimeArgs": []
+    }
+  },
+  "default-runtime": "nvidia"
+}
+EOF
+
 # Start Docker daemon in background
 echo "Starting Docker daemon..."
 dockerd > /var/log/dockerd.log 2>&1 &
 
 # Wait a moment for Docker to start
-sleep 3
+sleep 5
 
 # Start the SSH server
 echo "Starting SSH server..."
